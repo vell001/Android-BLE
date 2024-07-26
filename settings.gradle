@@ -14,6 +14,7 @@ dependencyResolutionManagement {
         maven { url 'https://jitpack.io' }
     }
 }
+
 rootProject.name = "Android-BLE"
 include ':java-sample'
 include ':core'

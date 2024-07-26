@@ -42,6 +42,11 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".TestAct"
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan">
+        </activity>
+
         <activity
             android:name=".ui.IntroducedActivity"
             android:screenOrientation="portrait" />

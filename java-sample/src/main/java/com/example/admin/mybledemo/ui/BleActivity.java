@@ -35,6 +35,7 @@ import android.widget.TextView;
 
 import com.example.admin.mybledemo.BleRssiDevice;
 import com.example.admin.mybledemo.R;
+import com.example.admin.mybledemo.TestAct;
 import com.example.admin.mybledemo.adapter.ScanAdapter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -148,8 +149,8 @@ public class BleActivity extends AppCompatActivity {
             permissions.add(Manifest.permission.BLUETOOTH_ADVERTISE);
             permissions.add(Manifest.permission.BLUETOOTH_CONNECT);
             //根据实际需要申请定位权限
-            //mPermissionList.add(Manifest.permission.ACCESS_COARSE_LOCATION);
-            //mPermissionList.add(Manifest.permission.ACCESS_FINE_LOCATION);
+            permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+            permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
         } else {
             permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
             permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
@@ -170,10 +171,10 @@ public class BleActivity extends AppCompatActivity {
             @Override
             public void onBluetoothStatusChanged(boolean isOn) {
                 BleLog.i(TAG, "onBluetoothStatusOn: 蓝牙是否打开>>>>:" + isOn);
-                llBlutoothAdapterTip.setVisibility(isOn?View.GONE:View.VISIBLE);
-                if (isOn){
+                llBlutoothAdapterTip.setVisibility(isOn ? View.GONE : View.VISIBLE);
+                if (isOn) {
                     checkGpsStatus();
-                }else {
+                } else {
                     if (ble.isScanning()) {
                         ble.stopScan();
                     }
@@ -190,32 +191,32 @@ public class BleActivity extends AppCompatActivity {
         }
         if (!ble.isBleEnable()) {
             llBlutoothAdapterTip.setVisibility(View.VISIBLE);
-        }else {
+        } else {
             checkGpsStatus();
         }
     }
 
-    private void checkGpsStatus(){
+    private void checkGpsStatus() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && !Utils.isGpsOpen(BleActivity.this)){
+                && !Utils.isGpsOpen(BleActivity.this)) {
             new AlertDialog.Builder(BleActivity.this)
                     .setTitle("提示")
                     .setMessage("为了更精确的扫描到Bluetooth LE设备,请打开GPS定位")
                     .setPositiveButton("确定", (dialog, which) -> {
                         Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                        startActivityForResult(intent,REQUEST_GPS);
+                        startActivityForResult(intent, REQUEST_GPS);
                     })
                     .setNegativeButton("取消", null)
                     .create()
                     .show();
-        }else {
+        } else {
             ble.startScan(scanCallback);
         }
     }
 
     private void rescan() {
+        bleRssiDevices.clear();
         if (ble != null && !ble.isScanning()) {
-            bleRssiDevices.clear();
             adapter.notifyDataSetChanged();
             ble.startScan(scanCallback);
         }
@@ -227,14 +228,18 @@ public class BleActivity extends AppCompatActivity {
             synchronized (ble.getLocker()) {
                 for (int i = 0; i < bleRssiDevices.size(); i++) {
                     BleRssiDevice rssiDevice = bleRssiDevices.get(i);
-                    if (TextUtils.equals(rssiDevice.getBleAddress(), device.getBleAddress())){
-                        if (rssiDevice.getRssi() != rssi && System.currentTimeMillis()-rssiDevice.getRssiUpdateTime() >1000L){
+                    if (TextUtils.equals(rssiDevice.getBleAddress(), device.getBleAddress())) {
+                        if (rssiDevice.getRssi() != rssi && System.currentTimeMillis() - rssiDevice.getRssiUpdateTime() > 1000L) {
                             rssiDevice.setRssiUpdateTime(System.currentTimeMillis());
                             rssiDevice.setRssi(rssi);
                             adapter.notifyItemChanged(i);
                         }
                         return;
                     }
+                }
+
+                if (device.getBleName() == null || !device.getBleName().startsWith("Joy")) {
+                    return;
                 }
                 device.setScanRecord(ScanRecord.parseFromBytes(scanRecord));
                 device.setRssi(rssi);
@@ -258,7 +263,7 @@ public class BleActivity extends AppCompatActivity {
         @Override
         public void onScanFailed(int errorCode) {
             super.onScanFailed(errorCode);
-            Log.e(TAG, "onScanFailed: "+errorCode);
+            Log.e(TAG, "onScanFailed: " + errorCode);
         }
     };
 
@@ -316,4 +321,9 @@ public class BleActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    public void onTestClick(View view) {
+        this.startActivity(new Intent(
+                this,
+                TestAct.class));
+    }
 }
